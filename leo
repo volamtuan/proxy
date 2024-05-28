@@ -94,7 +94,7 @@ yum -y install gcc net-tools bsdtar zip psmisc wget >/dev/null
 
 # Retrieve IPv4 and IPv6 addresses
 if ping6 -c3 icanhazip.com &> /dev/null; then
-    IP4=$(curl ifconfig.me)
+    IP4=$(curl -4 -s icanhazip.com)
     IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
     main_interface=$(ip route get 2001:4860:4860::8888 | awk -- '{printf $5}')
     
