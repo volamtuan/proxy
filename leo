@@ -3,7 +3,7 @@
 # Function to generate IPv6 addresses
 gen_ipv6_64() {
     rm $WORKDIR/ipv6.txt
-    for ((count_ipv6=1; count_ipv6<=$MAXCOUNT; count_ipv6++)); do
+    for ((count_ipv6=1; count_ipv6<=2000; count_ipv6++)); do
         for _ in {1..6}; do
             echo -n "${hex_chars[$((RANDOM % 16))]}"
         done | sed 's/.\{4\}/&:/g; s/:$//' >> $WORKDIR/ipv6.txt
@@ -68,7 +68,7 @@ gen_ifconfig() {
 export_txt() {
     port=$START_PORT
     for ((i=1; i<=$MAXCOUNT; i++)); do
-        echo "$IP4:$port:{USERNAME}:{PASSWORD}"
+        echo "$IP4:$port:vlt:vlt"
         ((port+=1))
     done
 }
@@ -94,17 +94,15 @@ yum -y install gcc net-tools bsdtar zip psmisc wget >/dev/null
 
 # Retrieve IPv4 and IPv6 addresses
 if ping6 -c3 icanhazip.com &> /dev/null; then
-    IP4=$(curl -4 -s icanhazip.com)
+    IP4=$(ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | head -n1)
     IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
     main_interface=$(ip route get 2001:4860:4860::8888 | awk -- '{printf $5}')
     
     echo "[OK]: Successfully obtained IP addresses"
     echo "IPv4: $IP4"
     echo "IPv6: $IP6"
-    echo "Main network interface: $main_interface"
 else
-    echo "[ERROR]: Failed to obtain IP addresses!"
-    exit 1
+    echo "[ERROR]: Failed to retrieve IP addresses"
 fi
 
 # Set variables
