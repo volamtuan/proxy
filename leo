@@ -67,7 +67,7 @@ gen_ifconfig() {
 # Function to export proxy settings
 export_txt() {
     port=$START_PORT
-    for ((i=1; i<=$MAXCOUNT; i++)); do
+    for ((i=1; i<=2000; i++)); do
         echo "$IP4:$port:vlt:vlt"
         ((port+=1))
     done
