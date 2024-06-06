@@ -38,10 +38,12 @@ timeouts 1 5 30 60 180 1800 15 60
 setgid 65535
 setuid 65535
 stacksize 60000
+flush
+
 auth iponly
 allow 14.224.163.75
 deny * * *
-flush
+
 
 $(awk -F "/" '{print "auth iponly\n" \
 "allow " $1 "\n" \
@@ -52,7 +54,7 @@ EOF
 
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
+$(awk -F "/" '{print $3 ":" $4 " }' ${WORKDATA})
 EOF
 }
 
