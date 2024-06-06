@@ -136,8 +136,23 @@ gen_proxy_file_for_user
 rm -rf /root/3proxy-0.9.4
 rm -rf lan.sh
 echo "Starting Proxy"
-echo "So Luong IPv6 Hien Tai:"
+echo "Số lượng địa chỉ IPv6 hiện tại:"
 ip -6 addr | grep inet6 | wc -l
+echo "Bat Dau Check Live ipv6:"
+check_all_ipv6_live() {
+    ip -6 addr | grep inet6 | while read -r line; do
+        address=$(echo "$line" | awk '{print $2}')
+        ip6=$(echo "$address" | cut -d'/' -f1)
+        ping6 -c 1 $ip6 > /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            echo "$ip6 is live"
+        else
+            echo "$ip6 is not live"
+        fi
+    done
+}
+
+check_all_ipv6_live
 
 # Menu loop
 while true; do
