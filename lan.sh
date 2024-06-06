@@ -65,10 +65,11 @@ gen_data() {
 
 gen_iptables() {
     cat <<EOF
-    $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' "${WORKDATA}") 
+$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA})
 EOF
 }
 
+# Hàm tạo ifconfig
 gen_ifconfig() {
     cat <<EOF
 $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
@@ -96,10 +97,12 @@ download_proxy() {
     curl -F "proxy=@proxy.txt" https://transfer.sh
 }
 
+install_3proxy
+
 echo "Dang Thiet Lap Thu Muc Cho Proxy"
 WORKDIR="/home/vlt"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir -p "$WORKDIR" && cd "$WORKDIR" || exit 1
+mkdir $WORKDIR && cd $_
 
 
 IP4=$(curl -4 -s icanhazip.com)
@@ -117,8 +120,6 @@ echo "Internal ip = ${IP4}. External sub for ip6 = ${IP6}"
 
 FIRST_PORT=25000
 LAST_PORT=27000
-
-install_3proxy
 
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh
