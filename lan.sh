@@ -38,10 +38,14 @@ timeouts 1 5 30 60 180 1800 15 60
 setgid 65535
 setuid 65535
 stacksize 6291456 
+stacksize 60000
 flush
+auth iponly strong cache
+allow 14.224.163.75
+deny * * *
 
-$(awk -F "/" '{print "\n" \
-"" $1 "\n" \
+$(awk -F "/" '{print "auth none\n" \
+"allow " $1 "\n" \
 "proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
 "flush\n"}' ${WORKDATA})
 EOF
@@ -49,7 +53,7 @@ EOF
 
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
+$(awk -F "/" '{print $3 ":" $4 "}' ${WORKDATA})
 EOF
 }
 
