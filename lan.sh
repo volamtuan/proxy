@@ -29,8 +29,9 @@ gen_3proxy() {
     cat <<EOF
 daemon
 maxconn 4000
-nserver 1.1.1.1
+nserver 8.8.8.8
 nserver 8.8.4.4
+nserver 1.1.1.1
 nserver 2001:4860:4860::8888
 nserver 2001:4860:4860::8844
 nscache 65536
@@ -54,7 +55,7 @@ EOF
 
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 " }' ${WORKDATA})
+$(awk -F "/" '{print $3 ":" $4 "" $1 "" $2 }' ${WORKDATA})
 EOF
 }
 
@@ -110,7 +111,7 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
-FIRST_PORT=57500
+FIRST_PORT=50000
 LAST_PORT=52500
 
 setup_environment
