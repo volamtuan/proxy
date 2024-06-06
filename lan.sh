@@ -82,14 +82,18 @@ yum -y install wget gcc net-tools bsdtar zip >/dev/null || exit 1
 
 rotate_ipv6() {
     echo "Rotating Xoay IPv6 Tu Dong..."
-    IP6="$IP6"
+    # Lấy IPv6 mới
+    IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
+    
+    # Tạo dữ liệu mới và cấu hình 3proxy
     gen_data >$WORKDIR/data.txt
     gen_ifconfig >$WORKDIR/boot_ifconfig.sh
     bash $WORKDIR/boot_ifconfig.sh
-    gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
-    /usr/local/etc/3proxy/bin/3proxy -f
-    killall 3proxy
-    echo "Xoay IPv6 rotated successfully."
+    gen_3proxy_cfg >/usr/local/etc/3proxy/3proxy.cfg
+    
+    # Khởi động lại dịch vụ 3proxy 
+    echo "Xoay IPv6 Successfully."
+    service network restart
     sleep 600
 }
 
@@ -111,7 +115,7 @@ IP4=$(curl -4 -s icanhazip.com)
 read -r -p "Nhập IPv6? Ví dụ: (2607:f8b0:4001: Enter bo qua): " vPrefix
 # Tự động lấy IPv6 nếu không có đầu vào từ người dùng
 if [ -z "$vPrefix" ]; then
-    IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
+    IP6=$(dcurl -6 -s icanhazip.com | cut -f1-4 -d':')
 else
     IP6="$vPrefix"
 fi
