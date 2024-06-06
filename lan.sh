@@ -23,6 +23,7 @@ install_3proxy() {
     cp src/3proxy /usr/local/etc/3proxy/bin/
     cd $WORKDIR
 }
+rm -rf /home/vlt/
 
 gen_3proxy() {
     cat <<EOF
