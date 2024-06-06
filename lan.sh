@@ -22,8 +22,8 @@ install_3proxy() {
     wget -qO- $URL | tar -xz >/dev/null 2>&1
     cd 3proxy-0.9.3
     make -f Makefile.Linux >/dev/null 2>&1
-    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}>/dev/null 2>&1
-    cp src/3proxy /usr/local/etc/3proxy/bin/>/dev/null 2>&1
+    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat} >/dev/null 2>&1
+    cp src/3proxy /usr/local/etc/3proxy/bin/ >/dev/null 2>&1
     cd $WORKDIR
 }
 
@@ -60,6 +60,7 @@ gen_data() {
         echo "//$IP4/$port/$(gen64 $IP6)"
     done
 }
+
 gen_iptables() {
     cat <<EOF
 $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT >/dev/null 2>&1"}' ${WORKDATA})
@@ -78,12 +79,11 @@ download_proxy() {
 }
 
 echo "installing apps"
-    echo "Cài đặt các gói cần thiết..."
-    yum -y install gcc net-tools bsdtar zip make >/dev/null 2>&1
-    yum install curl wget -y >/dev/null 2>&1
-    yum install nano net-tools -y >/dev/null 2>&1
-    echo "Hoàn tất cài đặt các gói cần thiết."
-}
+echo "Cài đặt các gói cần thiết..."
+yum -y install gcc net-tools bsdtar zip make >/dev/null 2>&1
+yum install curl wget -y >/dev/null 2>&1
+yum install nano net-tools -y >/dev/null 2>&1
+echo "Hoàn tất cài đặt các gói cần thiết."
 
 install_3proxy
 
