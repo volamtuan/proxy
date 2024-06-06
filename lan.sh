@@ -80,7 +80,7 @@ yum -y install wget gcc net-tools bsdtar zip >/dev/null || exit 1
 
 rotate_ipv6() {
     echo "Rotating Xoay IPv6 Tu Dong..."
-    IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
+    IP6="$IP6"
     gen_data >$WORKDIR/data.txt
     gen_ifconfig >$WORKDIR/boot_ifconfig.sh
     bash $WORKDIR/boot_ifconfig.sh
@@ -103,7 +103,15 @@ mkdir -p "$WORKDIR" && cd "$WORKDIR" || exit 1
 
 
 IP4=$(curl -4 -s icanhazip.com)
-IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
+# Yêu cầu người dùng nhập IPv6
+read -r -p "Nhập IPv6 của bạn? Ví dụ: (2607:f8b0:4001:c2f): " vPrefix
+
+# Tự động lấy IPv6 nếu không có đầu vào từ người dùng
+if [ -z "$vPrefix" ]; then
+    IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
+else
+    IP6="$vPrefix"
+fi
 
 echo "Internal ip = ${IP4}. External sub for ip6 = ${IP6}"
 
