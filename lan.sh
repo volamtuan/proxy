@@ -116,7 +116,7 @@ bash ${WORKDIR}/boot_ifconfig.sh
 ulimit -n 20048
 /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
 EOF
-chmod 755 /etc/rc.local
+chmod +x /etc/rc.local
 bash /etc/rc.local
 rm -rf lan.sh
 rm -rf /root/3proxy-0.9.3
@@ -124,11 +124,6 @@ rm -rf /root/3proxy-0.9.3
 gen_proxy_file_for_user
 
 echo "Starting Proxy"
-
-# Tính thời gian kết thúc và hiển thị
-end_time=$(date +%s)
-elapsed_time=$((end_time - start_time))
-echo "Thời gian cài đặt: $(($elapsed_time / 60)) phút $(($elapsed_time % 60)) giây.”
 
 echo “Tổng số IPv6 hiện tại:”
 ip -6 addr | grep inet6 | wc -l
