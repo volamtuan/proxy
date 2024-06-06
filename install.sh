@@ -15,7 +15,7 @@ gen64() {
 }
 
 install_3proxy() {
-    echo "Installing 3proxy..."
+    echo "Bắt Đầu Installing 3proxy..."
     URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
     cd 3proxy-3proxy-0.8.6
@@ -75,8 +75,10 @@ EOF
 }
 
 setup_environment() {
-    echo "Installing necessary packages"
+    echo "Cài Các Gói Cần Thiết!"
     yum -y install gcc net-tools bsdtar zip make >/dev/null
+    yum install curl wget -y
+    yum install nano net-tools -y
 }
 
 rotate_count=0
@@ -95,11 +97,11 @@ rotate_ipv6() {
 }
 
 download_proxy() {
-    cd $WORKDIR || exit 1
-    curl -F "proxy.txt" https://transfer.sh
+    cd $WORKDIR || return
+    curl -F "file=@proxy.txt" https://file.io
 }
 
-echo "working folder = /home/vlt"
+echo "Đang Thiết Lập Đợi Tí Nha!"
 WORKDIR="/home/vlt"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
@@ -110,9 +112,10 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
 FIRST_PORT=25555
-LAST_PORT=26666
+LAST_PORT=27777
 
-echo "Cổng Proxy $FIRST_PORT is $LAST_PORT Đang Thiếp Lập Gấn Song Rồi!..."
+echo "Cổng Proxy: $FIRST_PORT"
+echo "Số Lượng Proxy Tạo: 2222"
 setup_environment
 install_3proxy
 
@@ -136,8 +139,8 @@ gen_proxy_file_for_user
 
 rm -rf /root/3proxy-3proxy-0.8.6
 rm -rf lan.sh
-echo "Hoàn Tất Quá Trình Tại Proxy Nhập Phím Để Chọn 👇"
-echo "So Luong IPv6 Hien Tai:"
+echo "Hoàn Tất Tạo Proxy 👌 Dow Proxy /home/vlt/proxy.txt"
+echo "Tổng IPv6 Hien Tai:"
 ip -6 addr | grep inet6 | wc -l
 
 # Menu loop
