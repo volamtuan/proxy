@@ -87,10 +87,10 @@ rotate_ipv6() {
     gen_data >$WORKDIR/data.txt
     gen_ifconfig >$WORKDIR/boot_ifconfig.sh
     bash $WORKDIR/boot_ifconfig.sh
+    sudo service network restart
     echo "Xoay IPv6 Rotated successfully."
     rotate_count=$((rotate_count + 1))
     echo "Delay Xoay 10p : $rotate_count"
-    sudo service network restart
     sleep 3600
 }
 
