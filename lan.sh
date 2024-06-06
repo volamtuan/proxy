@@ -13,23 +13,23 @@ gen64() {
     }
     echo "$1:$(ip64):$(ip64):$(ip64):$(ip64)"
 }
+
 install_3proxy() {
-    URL="https://github.com/3proxy/3proxy/archive/refs/tags/0.9.4.tar.gz"
-    wget -qO- $URL | bsdtar -xvf-
-    cd 3proxy-0.9.4
-    make -f Makefile.Linux
-    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
-    cp src/3proxy /usr/local/etc/3proxy/bin/
-    cp ./scripts/rc.d/proxy.sh /etc/init.d/3proxy
-    chmod +x /etc/init.d/3proxy
-    chkconfig 3proxy on
-    cd $WORKDIR
+    echo "Installing 3proxy..."
+    URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
+    wget -qO- $URL | bsdtar -xvf- >/dev/null 2>&1
+    cd 3proxy-3proxy-0.8.6 || exit 1
+    make -f Makefile.Linux >/dev/null 2>&1
+    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat} >/dev/null 2>&1
+    cp src/3proxy /usr/local/etc/3proxy/bin/ >/dev/null 2>&1
+    cd $WORKDIR || exit 1
+    echo "3proxy installation completed."
 }
 
 gen_3proxy() {
     cat <<EOF
 daemon
-maxconn 4000
+maxconn 2000
 nserver 1.1.1.1
 nserver 8.8.4.4
 nserver 2001:4860:4860::8888
@@ -38,15 +38,11 @@ nscache 65536
 timeouts 1 5 30 60 180 1800 15 60
 setgid 65535
 setuid 65535
-stacksize 60000
-
+stacksize 6291456 
 flush
-auth iponly
-allow 14.224.163.75
-deny * * *
 
-$(awk -F "/" '{print "auth iponly\n" \
-"allow " $1 "\n" \
+$(awk -F "/" '{print "\n" \
+"" $1 "\n" \
 "proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
 "flush\n"}' ${WORKDATA})
 EOF
@@ -59,7 +55,7 @@ EOF
 }
 
 gen_data() {
-    seq $FIRST_PORT $LAST_PORT | while read port; do
+    seq $FIRST_PORT $LAST_PORT | while read -r port; do
         echo "//$IP4/$port/$(gen64 $IP6)"
     done
 }
@@ -70,124 +66,72 @@ $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state 
 EOF
 }
 
-# Hàm tạo ifconfig
 gen_ifconfig() {
     cat <<EOF
 $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 
-echo "installing apps"
-yum -y install wget gcc net-tools bsdtar zip >/dev/null || exit 1
-
-rotate_ipv6() {
-    echo "Rotating Xoay IPv6 Tu Dong..."
-    # Lấy IPv6 mới
-    IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
-    
-    # Tạo dữ liệu mới và cấu hình 3proxy
-    gen_data >$WORKDIR/data.txt
-    gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-    bash $WORKDIR/boot_ifconfig.sh
-    gen_3proxy_cfg >/usr/local/etc/3proxy/3proxy.cfg
-    
-    # Khởi động lại dịch vụ 3proxy 
-    echo "Xoay IPv6 Successfully."
-    service network restart
-    sleep 600
-}
-
 download_proxy() {
-    cd $WORKDIR || exit 1
-    curl -F "proxy=@proxy.txt" https://transfer.sh
+    cd $WORKDIR || return
+    curl -F "file=@proxy.txt" https://file.io
 }
 
-install_3proxy
+# Tính thời gian bắt đầu
+start_time=$(date +%s)
 
-echo "Dang Thiet Lap Thu Muc Cho Proxy"
-WORKDIR="/home/vlt"
+setup_environment() {
+    echo "Installing required packages..."
+    yum -y install gcc net-tools bsdtar zip make >/dev/null 2>&1
+    yum install curl wget -y >/dev/null 2>&1
+    yum install nano net-tools -y >/dev/null 2>&1
+}
+
+cat <<EOF > /etc/rc.d/rc.local
+#!/bin/bash
+touch /var/lock/subsys/local
+EOF
+
+echo "Setting up environment..."
+WORKDIR="/home/proxy"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir $WORKDIR && cd $_
-
+mkdir -p $WORKDIR && cd $WORKDIR || exit 1
 
 IP4=$(curl -4 -s icanhazip.com)
-# Yêu cầu người dùng nhập IPv6
-read -r -p "Nhập IPv6? Ví dụ: (2607:f8b0:4001: Enter bo qua): " vPrefix
-# Tự động lấy IPv6 nếu không có đầu vào từ người dùng
-if [ -z "$vPrefix" ]; then
-    IP6=$(dcurl -6 -s icanhazip.com | cut -f1-4 -d':')
-else
-    IP6="$vPrefix"
-fi
+IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal ip = ${IP4}. External sub for ip6 = ${IP6}"
+echo "Internal IP = ${IP4}. External subnet for IPv6 = ${IP6}"
 
-FIRST_PORT=25000
-LAST_PORT=27000
+FIRST_PORT=25555
+LAST_PORT=27777
+
+echo "Cổng proxy: $FIRST_PORT"
+echo "Số lượng proxy tạo: $(($LAST_PORT - $FIRST_PORT + 1))"
+
+setup_environment
+install_3proxy
 
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
 chmod +x $WORKDIR/boot_*.sh /etc/rc.local
+
 gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
 cat >>/etc/rc.local <<EOF
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
-ulimit -u unlimited -n 999999 -s 16384
+ulimit -n 20048
 /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
 EOF
-
-chmod 755 /etc/rc.local
+chmod +x /etc/rc.local
 bash /etc/rc.local
 
 gen_proxy_file_for_user
-
-rm -rf /root/3proxy-0.9.4
+rm -rf /root/3proxy-3proxy-0.8.6
 rm -rf lan.sh
 echo "Starting Proxy"
+echo "Proxy setup completed. Proxy file is located at: /home/proxy/proxy.txt"
 echo "Số lượng địa chỉ IPv6 hiện tại:"
 ip -6 addr | grep inet6 | wc -l
-echo "Bat Dau Check Live ipv6:"
-check_all_ipv6_live() {
-    ip -6 addr | grep inet6 | while read -r line; do
-        address=$(echo "$line" | awk '{print $2}')
-        ip6=$(echo "$address" | cut -d'/' -f1)
-        ping6 -c 1 $ip6 > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            echo "$ip6 is live"
-        else
-            echo "$ip6 is not live"
-        fi
-    done
-}
-
-check_all_ipv6_live
-
-# Menu loop
-while true; do
-    echo "1. Thiết Lập Lại 3proxy"
-    echo "2. Xoay IPV6"
-    echo "3. Download proxy"
-    echo "4. Exit"
-    echo -n "Enter your choice: "
-    read choice
-    case $choice in
-        1)
-            install_3proxy
-            ;;
-        2)
-            rotate_ipv6
-            ;;
-        3)
-            download_proxy
-            ;;
-        4)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid choice. Please try again."
-            ;;
-    esac
-done
+download_proxy
