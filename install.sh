@@ -1,4 +1,4 @@
-#!/bin/sh
+bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 random() {
@@ -23,7 +23,7 @@ install_3proxy() {
     mkdir -p /usr/local/etc/3proxy/{bin,logs,stat} >/dev/null 2>&1
     cp src/3proxy /usr/local/etc/3proxy/bin/ >/dev/null 2>&1
     cd $WORKDIR || exit 1
-    echo "Cài đặt 3proxy hoàn tất."
+    echo "Cài đặt 3 proxy hoàn tất, tiếp tục cấu hình cho 3 proxy"
 }
 
 gen_3proxy() {
