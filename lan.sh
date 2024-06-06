@@ -43,17 +43,16 @@ auth iponly
 allow 14.224.163.75
 deny * * *
 
-
 $(awk -F "/" '{print "auth iponly\n" \
 "allow " $1 "\n" \
-proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
+"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
 "flush\n"}' ${WORKDATA})
 EOF
 }
 
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 "" $1 "" $2 }' ${WORKDATA})
+$(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
 EOF
 }
 
@@ -80,34 +79,33 @@ setup_environment() {
     yum -y install gcc net-tools bsdtar zip make >/dev/null
 }
 
-rotate_count=0
-
 rotate_ipv6() {
-    echo "Rotating IPv6 addresses..."
+    echo "Rotating Xoay IPv6 Tu Dong..."
     IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
     gen_data >$WORKDIR/data.txt
     gen_ifconfig >$WORKDIR/boot_ifconfig.sh
     bash $WORKDIR/boot_ifconfig.sh
+    gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
+    /usr/local/etc/3proxy/bin/3proxy -f
+    killall 3proxy
+    service 3proxy start
     echo "IPv6 addresses rotated successfully."
-    rotate_count=$((rotate_count + 1))
-    echo "Rotation count: $rotate_count"
-    sleep 3600
 }
 
 download_proxy() {
     cd $WORKDIR || exit 1
-    curl -F "proxy.txt" https://transfer.sh
+    curl -F "proxy=@proxy.txt" https://transfer.sh
 }
 
 echo "working folder = /home/vlt"
 WORKDIR="/home/vlt"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir $WORKDIR && cd $_
+mkdir -p $WORKDIR && cd $WORKDIR
 
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
+echo "Internal ip = ${IP4}. External sub for ip6 = ${IP6}"
 
 FIRST_PORT=50000
 LAST_PORT=52500
@@ -166,4 +164,3 @@ while true; do
             ;;
     esac
 done
-
