@@ -108,7 +108,7 @@ mkdir $WORKDIR && cd $_
 
 IP4=$(curl -4 -s icanhazip.com)
 # Yêu cầu người dùng nhập IPv6
-read -r -p "Nhập IPv6 Hoặc Ấn Enter (bỏ qua): " vPrefix
+read -r -p "Nhập IPv6? Ví dụ: (2607:f8b0:4001: Enter bo qua): " vPrefix
 # Tự động lấy IPv6 nếu không có đầu vào từ người dùng
 if [ -z "$vPrefix" ]; then
     IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
