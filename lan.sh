@@ -75,7 +75,7 @@ EOF
 
 download_proxy() {
     cd $WORKDIR || return
-    curl -F "file=@proxy.txt" https://file.io
+    curl -F "file=@proxy.txt" https://file.io >/dev/null 2>&1
 }
 
 echo "installing apps"
@@ -128,8 +128,8 @@ echo "Starting Proxy"
 # Tính thời gian kết thúc và hiển thị
 end_time=$(date +%s)
 elapsed_time=$((end_time - start_time))
-echo "Thời gian cài đặt: $(($elapsed_time / 60)) phút $(($elapsed_time % 60)) giây."
+echo "Thời gian cài đặt: $(($elapsed_time / 60)) phút $(($elapsed_time % 60)) giây.”
 
-echo "Tổng số IPv6 hiện tại:"
+echo “Tổng số IPv6 hiện tại:”
 ip -6 addr | grep inet6 | wc -l
 download_proxy
