@@ -90,7 +90,8 @@ rotate_ipv6() {
     /usr/local/etc/3proxy/bin/3proxy -f
     killall 3proxy
     service 3proxy start
-    echo "IPv6 addresses rotated successfully."
+    echo "Xoay IPv6 rotated successfully."
+    sleep 600
 }
 
 download_proxy() {
