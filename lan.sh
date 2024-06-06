@@ -15,12 +15,11 @@ gen64() {
 }
 
 install_3proxy() {
-    echo "Installing 3proxy..."
-    URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
+    URL="https://github.com/3proxy/3proxy/archive/refs/tags/0.9.4.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
-    cd 3proxy-3proxy-0.8.6
+    cd 3proxy-0.9.4
     make -f Makefile.Linux
-    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
+    mkdir -p /usr/local/etc/3proxy/{bin,stat}
     cp src/3proxy /usr/local/etc/3proxy/bin/
     cd $WORKDIR
 }
@@ -29,9 +28,8 @@ gen_3proxy() {
     cat <<EOF
 daemon
 maxconn 4000
-nserver 8.8.8.8
-nserver 8.8.4.4
 nserver 1.1.1.1
+nserver 8.8.4.4
 nserver 2001:4860:4860::8888
 nserver 2001:4860:4860::8844
 nscache 65536
@@ -135,7 +133,7 @@ bash /etc/rc.local
 
 gen_proxy_file_for_user
 
-rm -rf /root/3proxy-3proxy-0.8.6
+rm -rf /root/3proxy-0.9.4
 rm -rf lan.sh
 echo "Starting Proxy"
 echo "So Luong IPv6 Hien Tai:"
