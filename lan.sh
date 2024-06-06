@@ -65,7 +65,7 @@ gen_data() {
 
 gen_iptables() {
     cat <<EOF
-$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA})
+    $(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' "${WORKDATA}") 
 EOF
 }
 
@@ -75,10 +75,8 @@ $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 
-setup_environment() {
-    echo "Installing necessary packages"
-    yum -y install gcc net-tools bsdtar zip make >/dev/null
-}
+echo "installing apps"
+yum -y install wget gcc net-tools bsdtar zip >/dev/null || exit 1
 
 rotate_ipv6() {
     echo "Rotating Xoay IPv6 Tu Dong..."
@@ -89,7 +87,6 @@ rotate_ipv6() {
     gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
     /usr/local/etc/3proxy/bin/3proxy -f
     killall 3proxy
-    service 3proxy start
     echo "Xoay IPv6 rotated successfully."
     sleep 600
 }
@@ -102,17 +99,17 @@ download_proxy() {
 echo "Dang Thiet Lap Thu Muc Cho Proxy"
 WORKDIR="/home/vlt"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir -p $WORKDIR && cd $WORKDIR
+mkdir -p "$WORKDIR" && cd "$WORKDIR" || exit 1
+
 
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
 echo "Internal ip = ${IP4}. External sub for ip6 = ${IP6}"
 
-FIRST_PORT=50000
-LAST_PORT=52500
+FIRST_PORT=25000
+LAST_PORT=27000
 
-setup_environment
 install_3proxy
 
 gen_data >$WORKDIR/data.txt
@@ -128,12 +125,12 @@ ulimit -u unlimited -n 999999 -s 16384
 /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
 EOF
 
-chmod +x /etc/rc.local
+chmod 755 /etc/rc.local
 bash /etc/rc.local
 
 gen_proxy_file_for_user
 
-rm -rf /root/3proxy-0.9.4
+rm -rf /home/3proxy-0.9.4
 rm -rf lan.sh
 echo "Starting Proxy"
 echo "Số lượng địa chỉ IPv6 hiện tại:"
