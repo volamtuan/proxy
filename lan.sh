@@ -38,14 +38,14 @@ timeouts 1 5 30 60 180 1800 15 60
 setgid 65535
 setuid 65535
 stacksize 60000
-auth iponly strong cache
+auth iponly
 allow 14.224.163.75
 deny * * *
 flush
 
-$(awk -F "/" '{print "\n" \
-"" $1 "\n" \
-"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
+$(awk -F "/" '{print "auth iponly\n" \
+"allow " $1 "\n" \
+proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
 "flush\n"}' ${WORKDATA})
 EOF
 }
@@ -108,8 +108,8 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
-FIRST_PORT=19000
-LAST_PORT=22500
+FIRST_PORT=50000
+LAST_PORT=52500
 
 setup_environment
 install_3proxy
@@ -123,7 +123,7 @@ gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 cat >>/etc/rc.local <<EOF
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
-ulimit -n 10048
+ulimit -u unlimited -n 999999 -s 16384
 /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
 EOF
 
