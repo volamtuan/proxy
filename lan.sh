@@ -100,7 +100,7 @@ download_proxy() {
     curl -F "proxy=@proxy.txt" https://transfer.sh
 }
 
-echo "working folder = /home/vlt"
+echo "Dang Thiet Lap Thu Muc Cho Proxy"
 WORKDIR="/home/vlt"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir -p $WORKDIR && cd $WORKDIR
