@@ -1,0 +1,37 @@
+#!/bin/bash
+
+gen64() {
+    array=( 0 1 2 3 4 5 6 7 8 9 a b c d e f )
+    echo "${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}"
+}
+
+get_ipv6_from_device() {
+    ipv6=$(ip -6 addr show | grep -oP '(?<=inet6\s)[\da-fA-F:]+(?=/64)' | head -n 1)
+    echo "$ipv6"
+}
+
+cut_ipv6() {
+    ipv6_cut=$(echo "$1" | cut -d '/' -f 1)
+    echo "$ipv6_cut"
+}
+
+ipv6_input=""
+
+read -r -p "Nhập địa chỉ IPv6 hoặc bấm Enter để tự động lấy: " ipv6_input
+
+if [ -z "$ipv6_input" ]; then
+    ipv6_input=$(get_ipv6_from_device)
+    echo "IPv6 từ thiết bị: $ipv6_input"
+fi
+
+ipv6_cut=$(cut_ipv6 "$ipv6_input")
+
+gen_ipv6() {
+    for ((i = 1; i <= 1000; i++)); do
+        ipv6_address="$ipv6_cut:$i:$(gen64):$(gen64):$(gen64):$(gen64)"
+        echo "$ipv6_address"
+    done
+}
+
+# Ghi kết quả vào tệp ipv6.txt
+gen_ipv6 > ipv6.txt
