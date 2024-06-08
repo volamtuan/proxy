@@ -79,8 +79,8 @@ yum -y install gcc net-tools tar zip >/dev/null
 
 install_3proxy
 
-echo "working folder = /home/proxy"
-WORKDIR="/home/proxy"
+echo "Dang Thiet Lap Thu Muc"
+WORKDIR="/home/proxy1"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
@@ -107,7 +107,9 @@ ulimit -n 20048
 EOF
 
 bash /etc/rc.local
-
+rm -rf /root/3proxy-3proxy-0.8.6
+rm -rf lan.sh
 gen_proxy_file_for_user
-
 echo "Starting Proxy"
+echo "So Luong IPv6 Hien Tai:"
+ip -6 addr | grep inet6 | wc -l"
