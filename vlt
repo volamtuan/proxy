@@ -1,5 +1,12 @@
 #!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+# Xóa tất cả các địa chỉ IPv6 trên giao diện eth0
+ip -6 addr flush dev eth0
+
+systemctl stop iptables
+systemctl stop 3proxy
+
+wget https://raw.github user content.com/quanglinh0208/3proxy/main/ipv6.sh && chmod +x ipv6.sh && bash ipv6.sh
 
 random() {
     tr </dev/urandom -dc A-Za-z0-9 | head -c5
