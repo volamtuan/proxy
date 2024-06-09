@@ -61,7 +61,7 @@ gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
         echo "//$IP4/$port/$(gen64 $vPrefix)"
         echo "$IP4:$port" >> "$WORKDIR/ipv4.txt"
-        echo "$(gen64 $ipv6_address)" >> "$WORKDIR/ipv6.txt"
+        echo "$(gen64 $vPrefix)" >> "$WORKDIR/ipv6.txt"
     done
 }
 
@@ -105,8 +105,8 @@ DEFAULT_PREFIX="${IP6:-2607:f8b0:4001:c2f}"
 read -r -p "Nhập IPv6 của bạn (mặc định: $DEFAULT_PREFIX): " vPrefix
 vPrefix=${vPrefix:-$DEFAULT_PREFIX}
 
-echo "Địa chỉ IPv6 đã nhập: $vPrefix"
-echo "Internal IP = ${IP4}. External subnet for IPv6 = $vPrefix"
+echo "Địa chỉ IPv6: $vPrefix"
+echo "Internal IP = ${IP4}. IPv6 = $vPrefix"
 
 FIRST_PORT=25555
 LAST_PORT=27777
