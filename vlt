@@ -114,13 +114,12 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 DEFAULT_PREFIX="${IP6:-2607:f8b0:4001:c2f}"
 read -r -p "Nhập IPv6 của bạn (mặc định: $DEFAULT_PREFIX): " vPrefix
 vPrefix=${vPrefix:-$DEFAULT_PREFIX}
-
+sleep 10  # Chờ 5 giây trước khi lấy địa chỉ IPv6 mặc định
 echo "Địa chỉ IPv6: $vPrefix"
 echo "Internal IP = ${IP4}. IPv6 = $vPrefix"
 
 FIRST_PORT=25555
 LAST_PORT=27777
-
 echo "Cổng proxy: $FIRST_PORT"
 echo "Số lượng proxy tạo: $(($LAST_PORT - $FIRST_PORT + 1))"
 
