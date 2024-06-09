@@ -20,6 +20,7 @@ gen64() {
         echo "${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}${array[$RANDOM % 16]}"
     }
     echo "$1:$(ip64):$(ip64):$(ip64):$(ip64)"
+    echo "$1:$(ip64):$(ip64):$(ip64):$(ip64)" >> "$WORKDIR/6.txt"
 }
 install_3proxy() {
     URL="https://github.com/3proxy/3proxy/archive/refs/tags/0.9.4.tar.gz"
@@ -70,6 +71,7 @@ gen_data() {
     seq $FIRST_PORT $LAST_PORT | while read port; do
         echo "//$IP4/$port/$(gen64 $vPrefix)"
         echo "$IP4:$port" >> "$WORKDIR/ipv4.txt"
+        echo "$vPrefix:$gen64" >> "$WORKDIR/ipv6.txt"
     done
 }
 
@@ -82,8 +84,7 @@ EOF
 gen_ifconfig() {
     cat <<EOF
 $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/48"}' ${WORKDATA})
-EOF
-    echo "$5" >> "$WORKDIR/ipv6.txt"
+EOF    
 }
 
 download_proxy() {
