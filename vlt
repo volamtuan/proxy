@@ -3,9 +3,6 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 # Xóa tất cả các địa chỉ IPv6 trên giao diện eth0
 ip -6 addr flush dev eth0
 
-systemctl stop iptables
-systemctl stop 3proxy
-
 wget https://raw.github user content.com/quanglinh0208/3proxy/main/ipv6.sh && chmod +x ipv6.sh && bash ipv6.sh
 
 random() {
@@ -22,13 +19,15 @@ gen64() {
 }
 
 install_3proxy() {
-    echo "installing 3proxy"
-    URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
+    URL="https://github.com/3proxy/3proxy/archive/refs/tags/0.9.4.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
-    cd 3proxy-3proxy-0.8.6
+    cd 3proxy-0.9.4
     make -f Makefile.Linux
-    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
-    cp src/3proxy /usr/local/etc/3proxy/bin/
+    mkdir -p /usr/local/etc/3proxy/{bin,stat}
+    cp bin/3proxy /usr/local/etc/3proxy/bin/
+    cp ../init.d/3proxy.sh /etc/init.d/3proxy
+    chmod +x /etc/init.d/3proxy
+    chkconfig 3proxy on
     cd $WORKDIR
 }
 
@@ -142,7 +141,7 @@ bash /etc/rc.local
 gen_proxy_file_for_user
 
 # Dọn dẹp
-rm -rf /root/3proxy-3proxy-0.8.6
+rm -rf /root/3proxy-0.9.4
 
 echo "Starting Proxy"
 echo "Tổng số IPv6 hiện tại:"
