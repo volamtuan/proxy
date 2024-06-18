@@ -65,6 +65,7 @@ stacksize 6291456
 flush
 auth none
 allow 14.224.163.75
+allow ${IP4}
 allow 127.0.0.1
 
 $(awk -F "/" '{print "auth none\n" \
