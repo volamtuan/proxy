@@ -1,23 +1,14 @@
 #!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-#!/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
-
 setup_ipv6() {
     echo "Thiết lập IPv6..."
-    sudo service 3proxy stop
     ip -6 addr flush dev eth0
-    sudo systemctl stop firewalld
-    sudo systemctl disable firewalld
+    ip -6 addr flush dev ens33
     bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh") 
 }
 
 setup_ipv6
-
-WORKDIR="/home/proxy"
-MAXCOUNT=3333
-START_PORT=30000
 
 # Function to auto-detect network interface name
 auto_detect_interface() {
