@@ -1,6 +1,14 @@
 #!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
+setup_ipv6() {
+    echo "Thiết lập IPv6..."
+    ip -6 addr flush dev eth0
+    bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh") 
+}
+
+setup_ipv6
+
 random() {
     tr </dev/urandom -dc A-Za-z0-9 | head -c5
     echo
@@ -15,7 +23,7 @@ gen64() {
 }
 
 install_3proxy() {
-    echo "Installing 3proxy..."
+    echo "Installing 3proxy"
     URL="https://github.com/z3APA3A/3proxy/archive/3proxy-0.8.6.tar.gz"
     wget -qO- $URL | bsdtar -xvf-
     cd 3proxy-3proxy-0.8.6
@@ -26,30 +34,30 @@ install_3proxy() {
 }
 
 gen_3proxy() {
-    cat <<EOF
+    cat <<EOF >/usr/local/etc/3proxy/3proxy.cfg
 daemon
-maxconn 2000
+maxconn 5000
 nserver 1.1.1.1
 nserver 8.8.4.4
 nserver 2001:4860:4860::8888
 nserver 2001:4860:4860::8844
 nscache 65536
+nscache6 65536
 timeouts 1 5 30 60 180 1800 15 60
 setgid 65535
 setuid 65535
 stacksize 6291456 
 flush
+auth none
+allow 127.0.0.1
 
-$(awk -F "/" '{print "\n" \
-"" $1 "\n" \
-"proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\n" \
-"flush\n"}' ${WORKDATA})
+$(awk -F "/" '{print "proxy -6 -n -a -p" $4 " -i" $3 " -e"$5"\nflush\n"}' ${WORKDATA})
 EOF
 }
 
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
+$(awk -F "/" '{print $3 ":" $4}' ${WORKDATA})
 EOF
 }
 
@@ -61,7 +69,7 @@ gen_data() {
 
 gen_iptables() {
     cat <<EOF
-$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 "  -m state --state NEW -j ACCEPT"}' ${WORKDATA})
+$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 " -m state --state NEW -j ACCEPT"}' ${WORKDATA})
 EOF
 }
 
@@ -71,83 +79,64 @@ $(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
 EOF
 }
 
-rotate_ipv6() {
-    echo "Rotating IPv6 addresses..."
-    IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
-    gen_data >$WORKDIR/data.txt
-    gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-    bash $WORKDIR/boot_ifconfig.sh
-    sleep 3600
-    echo "IPv6 addresses rotated successfully."  
-}
-
 download_proxy() {
-    cd /home/cloudfly || return
-    curl -F "file=@proxy.txt" https://file.io
+    cd $WORKDIR || exit 1
+    curl -F "proxy.txt" https://transfer.sh
 }
 
-yum -y install wget gcc net-tools bsdtar zip curl >/dev/null
+# Thiết lập tập tin /etc/rc.local để khởi động các cấu hình mạng và 3proxy khi hệ thống khởi động
+cat <<EOF >/etc/rc.d/rc.local
+#!/bin/bash
+touch /var/lock/subsys/local
+EOF
+
+# Cài đặt các ứng dụng cần thiết
+echo "Installing apps"
+sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
 
 install_3proxy
 
-echo "Setting up working directory"
-WORKDIR="/home/ken"
+# Thiết lập thư mục làm việc
+WORKDIR="/home/kiet"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
+# Lấy địa chỉ IP
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
-echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
+echo "Internal IP = ${IP4}. External subnet for IPv6 = ${IP6}"
 
-FIRST_PORT=20000
-LAST_PORT=21100
+FIRST_PORT=10000
+LAST_PORT=12444
+
+echo "Cổng proxy: $FIRST_PORT"
+echo "Số lượng proxy tạo: $(($LAST_PORT - $FIRST_PORT + 1))"
 
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-chmod +x "$WORKDIR"/boot_*.sh /etc/rc.local
+chmod +x $WORKDIR/boot_*.sh /etc/rc.local
 
-gen_3proxy >"/usr/local/etc/3proxy/3proxy.cfg"
+gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
 
 cat >>/etc/rc.local <<EOF
+systemctl start NetworkManager.service
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
-ulimit -n 10048
-/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg
+ulimit -n 65535
+/usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg &
 EOF
 
 bash /etc/rc.local
 
+# Tạo tập tin proxy cho người dùng
 gen_proxy_file_for_user
 rm -rf /root/3proxy-3proxy-0.8.6
 
 echo "Starting Proxy"
 
-# Menu loop
-while true; do
-    echo "1. Install 3proxy"
-    echo "2. Rotate IPv6 addresses"
-    echo "3. Download proxy"
-    echo "4. Exit"
-    echo -n "Enter your choice: "
-    read choice
-    case $choice in
-        1)
-            install_3proxy
-            ;;
-        2)
-            rotate_ipv6
-            ;;
-        3)
-            download_proxy
-            ;;
-        4)
-            echo "Exiting..."
-            exit 0
-            ;;
-        *)
-            echo "Invalid choice. Please try again."
-            ;;
-    esac
-done
+echo "Tổng số IPv6 hiện tại:"
+ip -6 addr | grep inet6 | wc -l
+download_proxy
+
