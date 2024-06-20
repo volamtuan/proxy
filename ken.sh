@@ -90,10 +90,14 @@ cat <<EOF >/etc/rc.d/rc.local
 touch /var/lock/subsys/local
 EOF
 
+# Cài đặt các ứng dụng cần thiết
+echo "Installing apps"
+sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
+
 install_3proxy
 
 # Thiết lập thư mục làm việc
-WORKDIR="/home/proxy"
+WORKDIR="/home/kiet"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
