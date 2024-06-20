@@ -2,17 +2,12 @@
 set -euo pipefail  # Set bash strict mode
 
 setup_ipv6() {
-    echo "Setting up IPv6..."
+    echo "Thiết lập IPv6..."
     ip -6 addr flush dev eth0
-    # Add more IPv6 setup commands as needed
-}
-
-install_dependencies() {
-    echo "Installing necessary packages..."
     sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
+    bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh") 
 }
 setup_ipv6
-install_dependencies
 
 random() {
     tr </dev/urandom -dc A-Za-z0-9 | head -c5
