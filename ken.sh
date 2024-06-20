@@ -1,13 +1,18 @@
-#!/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+#!/bin/bash
+set -euo pipefail  # Set bash strict mode
 
 setup_ipv6() {
-    echo "Thiết lập IPv6..."
+    echo "Setting up IPv6..."
     ip -6 addr flush dev eth0
-    bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh") 
+    # Add more IPv6 setup commands as needed
 }
 
+install_dependencies() {
+    echo "Installing necessary packages..."
+    sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
+}
 setup_ipv6
+install_dependencies
 
 random() {
     tr </dev/urandom -dc A-Za-z0-9 | head -c5
@@ -34,8 +39,7 @@ install_3proxy() {
 }
 
 gen_3proxy() {
-    cat <<EOF >/usr/local/etc/3proxy/3proxy.cfg
-daemon
+    cat <<EOF
 maxconn 5000
 nserver 1.1.1.1
 nserver 8.8.4.4
@@ -90,14 +94,10 @@ cat <<EOF >/etc/rc.d/rc.local
 touch /var/lock/subsys/local
 EOF
 
-# Cài đặt các ứng dụng cần thiết
-echo "Installing apps"
-sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
-
 install_3proxy
 
 # Thiết lập thư mục làm việc
-WORKDIR="/home/kiet"
+WORKDIR="/home/proxy"
 WORKDATA="${WORKDIR}/data.txt"
 mkdir $WORKDIR && cd $_
 
