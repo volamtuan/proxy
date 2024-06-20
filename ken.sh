@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/bin/sh
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 setup_ipv6() {
     echo "Thiết lập IPv6..."
     ip -6 addr flush dev eth0
-    sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
     bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh") 
 }
+
 setup_ipv6
 
 random() {
