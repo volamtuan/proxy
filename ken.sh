@@ -1,13 +1,11 @@
-#!/bin/sh
-PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+#!/bin/bash
+set -euo pipefail
 
 setup_ipv6() {
-    echo "Thiết lập IPv6..."
+    echo "Setting up IPv6..."
     ip -6 addr flush dev eth0
     bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh") 
 }
-
-setup_ipv6
 
 random() {
     tr </dev/urandom -dc A-Za-z0-9 | head -c5
@@ -28,13 +26,13 @@ install_3proxy() {
     wget -qO- $URL | bsdtar -xvf-
     cd 3proxy-3proxy-0.8.6
     make -f Makefile.Linux
-    mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
-    cp src/3proxy /usr/local/etc/3proxy/bin/
-    cd $WORKDIR
+    sudo mkdir -p /usr/local/etc/3proxy/{bin,logs,stat}
+    sudo cp src/3proxy /usr/local/etc/3proxy/bin/
+    cd -
 }
 
 gen_3proxy() {
-    cat <<EOF
+    cat <<EOF | sudo tee /usr/local/etc/3proxy/3proxy.cfg
 daemon
 maxconn 5000
 nserver 1.1.1.1
@@ -56,9 +54,7 @@ EOF
 }
 
 gen_proxy_file_for_user() {
-    cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4}' ${WORKDATA})
-EOF
+    awk -F "/" '{print $3 ":" $4}' ${WORKDATA} >proxy.txt
 }
 
 gen_data() {
@@ -68,15 +64,11 @@ gen_data() {
 }
 
 gen_iptables() {
-    cat <<EOF
-$(awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 " -m state --state NEW -j ACCEPT"}' ${WORKDATA})
-EOF
+    awk -F "/" '{print "iptables -I INPUT -p tcp --dport " $4 " -m state --state NEW -j ACCEPT"}' ${WORKDATA}
 }
 
 gen_ifconfig() {
-    cat <<EOF
-$(awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA})
-EOF
+    awk -F "/" '{print "ifconfig eth0 inet6 add " $5 "/64"}' ${WORKDATA}
 }
 
 download_proxy() {
@@ -84,24 +76,21 @@ download_proxy() {
     curl -F "proxy.txt" https://transfer.sh
 }
 
-# Thiết lập tập tin /etc/rc.local để khởi động các cấu hình mạng và 3proxy khi hệ thống khởi động
-cat <<EOF >/etc/rc.d/rc.local
-#!/bin/bash
-touch /var/lock/subsys/local
-EOF
+# Main script execution starts here
 
-# Cài đặt các ứng dụng cần thiết
+# Install dependencies
 echo "Installing apps"
 sudo yum -y install curl wget gcc net-tools bsdtar zip >/dev/null
 
 install_3proxy
 
-# Thiết lập thư mục làm việc
+# Setup work directory
 WORKDIR="/home/kiet"
 WORKDATA="${WORKDIR}/data.txt"
-mkdir $WORKDIR && cd $_
+mkdir -p $WORKDIR
+cd $WORKDIR
 
-# Lấy địa chỉ IP
+# Get IP addresses
 IP4=$(curl -4 -s icanhazip.com)
 IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 
@@ -116,11 +105,14 @@ echo "Số lượng proxy tạo: $(($LAST_PORT - $FIRST_PORT + 1))"
 gen_data >$WORKDIR/data.txt
 gen_iptables >$WORKDIR/boot_iptables.sh
 gen_ifconfig >$WORKDIR/boot_ifconfig.sh
-chmod +x $WORKDIR/boot_*.sh /etc/rc.local
+chmod +x $WORKDIR/boot_*.sh
 
-gen_3proxy >/usr/local/etc/3proxy/3proxy.cfg
+gen_3proxy
 
-cat >>/etc/rc.local <<EOF
+# Set up /etc/rc.local for persistence
+cat <<EOF | sudo tee /etc/rc.d/rc.local
+#!/bin/bash
+touch /var/lock/subsys/local
 systemctl start NetworkManager.service
 bash ${WORKDIR}/boot_iptables.sh
 bash ${WORKDIR}/boot_ifconfig.sh
@@ -128,9 +120,16 @@ ulimit -n 65535
 /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg &
 EOF
 
-bash /etc/rc.local
+sudo chmod +x /etc/rc.d/rc.local
 
-# Tạo tập tin proxy cho người dùng
+# Start necessary services and configurations
+sudo systemctl start NetworkManager.service
+bash ${WORKDIR}/boot_iptables.sh
+bash ${WORKDIR}/boot_ifconfig.sh
+ulimit -n 65535
+sudo /usr/local/etc/3proxy/bin/3proxy /usr/local/etc/3proxy/3proxy.cfg &
+
+# Generate proxy file for user
 gen_proxy_file_for_user
 rm -rf /root/3proxy-3proxy-0.8.6
 
@@ -139,4 +138,3 @@ echo "Starting Proxy"
 echo "Tổng số IPv6 hiện tại:"
 ip -6 addr | grep inet6 | wc -l
 download_proxy
-
