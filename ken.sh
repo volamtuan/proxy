@@ -1,5 +1,4 @@
 #!/bin/bash
-set -euo pipefail  # Set bash strict mode
 
 setup_ipv6() {
     echo "Thiết lập IPv6..."
