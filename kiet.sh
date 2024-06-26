@@ -1,5 +1,13 @@
 #!/bin/bash
 
+setup_ipv6() {
+    echo "Thiết lập IPv6..."
+    ip -6 addr flush dev eth0
+    ip -6 addr flush dev ens33
+    bash <(curl -s "https://raw.githubusercontent.com/quanglinh0208/3proxy/main/ipv6.sh")
+}
+setup_ipv6
+
 # Định nghĩa hàm random
 random() {
     tr </dev/urandom -dc A-Za-z0-9 | head -c5
@@ -55,7 +63,7 @@ EOF
 # Hàm tạo file proxy.txt cho người dùng
 gen_proxy_file_for_user() {
     cat >proxy.txt <<EOF
-$(awk -F "/" '{print $3 ":" $4 ":" $1 ":" $2 }' ${WORKDATA})
+$(awk -F "/" '{print $3 ":" $4 }' ${WORKDATA})
 EOF
 }
 
@@ -118,8 +126,8 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
 # Cổng bắt đầu và kết thúc
-FIRST_PORT=10000
-LAST_PORT=10222
+FIRST_PORT=33333
+LAST_PORT=41111
 
 # Cài đặt môi trường
 setup_environment
