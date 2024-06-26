@@ -126,8 +126,8 @@ IP6=$(curl -6 -s icanhazip.com | cut -f1-4 -d':')
 echo "Internal ip = ${IP4}. Exteranl sub for ip6 = ${IP6}"
 
 # Cổng bắt đầu và kết thúc
-FIRST_PORT=33333
-LAST_PORT=41111
+FIRST_PORT=10000
+LAST_PORT=11111
 
 # Cài đặt môi trường
 setup_environment
